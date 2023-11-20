@@ -2,14 +2,13 @@ package com.example.demo.service;
 
 import com.example.demo.config.TelegramBot;
 import com.example.demo.entity.User;
-import jakarta.annotation.PostConstruct;
 import org.apache.commons.lang3.ObjectUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +31,8 @@ public class NotificationScheduler {
     @Scheduled(cron = "${currency-change.upd.cron}")
     public void getCurrencyChanges() {
         System.out.println("Scheduler works...");
-        Map<String, BigDecimal> currentCurrencyValues = currencyService.getCurrency();;
+        Map<String, BigDecimal> currentCurrencyValues = currencyService.getCurrency();
+
         Map<String, Double> changes = new HashMap<>();
         if (ObjectUtils.isNotEmpty(prevCurrencyValues)) {
             System.out.println("Get new currency value");
@@ -60,12 +60,13 @@ public class NotificationScheduler {
             String notificationMessage = createNotificationMessage(changes);
             System.out.println("Message lengh: " + notificationMessage.length());
             // Max len 4096
-
+            String[] messageArr = notificationMessage.split("(?<=\\G.{4000})");
+            List<String> messages = Arrays.asList(messageArr);
             users.forEach(user -> {
                 System.out.println("Notify User: " + user);
                 bot.sendUpdateMessage(user.getChatId(),
                         "Hey! There is an info about the currency changes: ");
-                bot.sendUpdateMessage(user.getChatId(), notificationMessage);
+                messages.forEach(m -> bot.sendUpdateMessage(user.getChatId(), m));
             });
         }
 
@@ -79,7 +80,7 @@ public class NotificationScheduler {
 
     private void calculateCurrencyChange(Map<String, Double> changes, String symbol, BigDecimal prevVal,
                                          BigDecimal curVal) {
-
+        System.out.println("Symbol: " + symbol + "Prev = " + prevVal + "CURRENT val = " + curVal);
         BigDecimal result = (prevVal.divide(curVal, 2, RoundingMode.HALF_EVEN)
                 .subtract(new BigDecimal(1)))
                 .multiply(new BigDecimal(100)).setScale(2, RoundingMode.HALF_EVEN);
