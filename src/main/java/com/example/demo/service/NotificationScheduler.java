@@ -57,12 +57,13 @@ public class NotificationScheduler {
     private void notifyUsers(Map<String, Double> changes, List<User> users) {
         //TODO add pageble and findBy start and End time in future
         if (ObjectUtils.isNotEmpty(changes)) {
-            String notificationMessage = createNotificationMessage(changes);
-            System.out.println("Message lengh: " + notificationMessage.length());
-            // Max len 4096
+            users.forEach(user -> {
+            // list of changes not for all users
+            // collect notifications for the user!!!
+            String notificationMessage = createNotificationMessage(changes, user.getPercent());
             String[] messageArr = notificationMessage.split("(?<=\\G.{4000})");
             List<String> messages = Arrays.asList(messageArr);
-            users.forEach(user -> {
+
                 System.out.println("Notify User: " + user);
                 bot.sendUpdateMessage(user.getChatId(),
                         "Hey! There is an info about the currency changes: ");
@@ -72,8 +73,9 @@ public class NotificationScheduler {
 
     }
 
-    private String createNotificationMessage(Map<String, Double> changes) {
+    private String createNotificationMessage(Map<String, Double> changes, Integer percent) {
         return changes.keySet().stream()
+                .filter(key-> changes.get(key) >= percent)
                 .map(key -> key + " -> " + changes.get(key))
                 .collect(Collectors.joining(", ", "[", "]"));
     }
@@ -87,6 +89,5 @@ public class NotificationScheduler {
         double res = result.setScale(0, RoundingMode.HALF_EVEN).abs().doubleValue();
         // collect all possible changes
         changes.put(symbol, res);
-
     }
 }
