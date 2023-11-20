@@ -21,14 +21,13 @@ public class UserService {
     public List<User> getUsersToNotify() {
         int hours = LocalDateTime.now().getHour();
         int minutes = LocalDateTime.now().getMinute();
-        System.out.println("Hours: " + hours);
-        System.out.println("Minutes: "+ minutes);
+
         // create LocalDateTime
         String time = String.valueOf(hours).concat(":").concat(String.valueOf(minutes));
         LocalTime currentTime = DateTimeConverter.parseStringTime(time);
-        System.out.println("Current Time is " + currentTime);
-       // return userRepository.findAllByTimeOfStartIsAfterAndTimeOfFinishIsBefore(currentTime, currentTime);
-        return userRepository.findAll();
+
+       return userRepository.findAllByTimeOfStartIsAfterAndTimeOfFinishIsBefore(currentTime, currentTime);
+       // return userRepository.findAll();
     }
 
 
